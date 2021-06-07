@@ -63,9 +63,14 @@ router.post('/', authenticateUser, asyncHandler( async (req, res) => {
         const course = await Course.create(req.body);
         res.status(201)
         .location('/api/courses/' + course.id).end();
-        } catch {
-        res.status(400).json({message: 'Please provide course information.'});
-    }
+        } catch (error) {
+          if (error.name === "SequelizeValidationError" || error.name === "SequelizeUniqueConstraintError") {
+            const errors = error.errors.map(err => err.message);
+            res.status(400).json({ errors });
+          } else {
+            throw error;
+          }
+        }
 }));
 
 //Send a PUT request to update a specific course
